@@ -1,6 +1,6 @@
 /**
  * Frontend JavaScript for Crypto Paste
- * Handles form submission, API calls, UI interactions, and localStorage
+ * Handles form submission, API calls, UI interactions, localStorage, and E2E encryption
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -25,6 +25,101 @@ document.addEventListener('DOMContentLoaded', function() {
         DRAFT: 'crypto-paste-draft',
         RECENT: 'crypto-paste-recent',
         THEME: 'crypto-paste-theme'
+    };
+    
+    // Encryption utilities
+    const CryptoUtils = {
+        // Generate a random encryption key
+        generateKey: async () => {
+            return await crypto.subtle.generateKey(
+                {
+                    name: 'AES-GCM',
+                    length: 256
+                },
+                true,
+                ['encrypt', 'decrypt']
+            );
+        },
+
+        // Generate a random IV
+        generateIV: () => {
+            return crypto.getRandomValues(new Uint8Array(12));
+        },
+
+        // Encrypt data with AES-GCM
+        encrypt: async (data, key) => {
+            const iv = CryptoUtils.generateIV();
+            const encodedData = new TextEncoder().encode(data);
+            
+            const encryptedData = await crypto.subtle.encrypt(
+                {
+                    name: 'AES-GCM',
+                    iv: iv
+                },
+                key,
+                encodedData
+            );
+            
+            // Combine IV and encrypted data
+            const combined = new Uint8Array(iv.length + encryptedData.byteLength);
+            combined.set(iv);
+            combined.set(new Uint8Array(encryptedData), iv.length);
+            
+            // Convert to base64 for storage
+            return btoa(String.fromCharCode(...combined));
+        },
+
+        // Decrypt data with AES-GCM
+        decrypt: async (encryptedData, key) => {
+            try {
+                // Convert from base64
+                const combined = new Uint8Array(
+                    atob(encryptedData).split('').map(char => char.charCodeAt(0))
+                );
+                
+                // Extract IV and encrypted data
+                const iv = combined.slice(0, 12);
+                const data = combined.slice(12);
+                
+                const decryptedData = await crypto.subtle.decrypt(
+                    {
+                        name: 'AES-GCM',
+                        iv: iv
+                    },
+                    key,
+                    data
+                );
+                
+                return new TextDecoder().decode(decryptedData);
+            } catch (error) {
+                console.error('Decryption failed:', error);
+                throw new Error('Failed to decrypt content');
+            }
+        },
+
+        // Export key to base64 string
+        exportKey: async (key) => {
+            const exported = await crypto.subtle.exportKey('raw', key);
+            return btoa(String.fromCharCode(...new Uint8Array(exported)));
+        },
+
+        // Import key from base64 string
+        importKey: async (keyString) => {
+            const keyData = new Uint8Array(
+                atob(keyString).split('').map(char => char.charCodeAt(0))
+            );
+            
+            return await crypto.subtle.importKey(
+                'raw',
+                keyData,
+                {
+                    name: 'AES-GCM',
+                    length: 256
+                },
+                false,
+                ['encrypt', 'decrypt']
+            );
+        }
     };
     
     // Initialize app
@@ -289,25 +384,45 @@ document.addEventListener('DOMContentLoaded', function() {
         setSubmitState(true);
         
         try {
+            // Generate encryption key
+            const encryptionKey = await CryptoUtils.generateKey();
+            
+            // Encrypt the content
+            const encryptedContent = await CryptoUtils.encrypt(data.content, encryptionKey);
+            
+            // Export the key for URL inclusion
+            const keyString = await CryptoUtils.exportKey(encryptionKey);
+            
+            // Prepare data for server (content is now encrypted)
+            const serverData = {
+                ...data,
+                content: encryptedContent,
+                encrypted: true
+            };
+            
             const response = await fetch(`${API_BASE}/api/paste`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(serverData)
             });
             
             const responseData = await response.json();
             
             if (response.ok) {
+                // Add encryption key to URL for decryption
+                const urlWithKey = `${responseData.url}#key=${encodeURIComponent(keyString)}`;
+                responseData.url = urlWithKey;
+                
                 // Success
                 handleCreateSuccess(responseData, data);
             } else {
                 handleCreateError(responseData.error || 'Failed to create paste');
             }
         } catch (error) {
-            console.error('Network error:', error);
-            handleCreateError('Network error. Please check your connection and try again.');
+            console.error('Encryption or network error:', error);
+            handleCreateError('Failed to encrypt or create paste. Please try again.');
         }
         
         setSubmitState(false);

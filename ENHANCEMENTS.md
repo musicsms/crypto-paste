@@ -138,4 +138,120 @@ The crypto-paste application now provides:
 4. **Modern Aesthetics**: Consistent glassmorphism, smooth animations
 5. **Accessibility**: Better contrast, keyboard support, screen reader friendly
 
-All requested enhancements have been successfully implemented while maintaining the existing functionality and improving the overall user experience. 
+All requested enhancements have been successfully implemented while maintaining the existing functionality and improving the overall user experience.
+
+# 🔐 End-to-End Encryption Enhancement
+
+## Overview
+Implemented true end-to-end encryption for Crypto Paste, ensuring that the server never has access to plain text content.
+
+## Security Features
+
+### 🛡️ **Zero-Knowledge Architecture**
+- Content is encrypted client-side before transmission
+- Server stores only encrypted data
+- Decryption keys never leave the client
+- Server cannot read paste content even with database access
+
+### 🔑 **Encryption Details**
+- **Algorithm**: AES-GCM 256-bit
+- **Key Generation**: Cryptographically secure random keys
+- **IV/Nonce**: 12-byte random values per encryption
+- **Key Derivation**: Raw 256-bit keys exported to base64
+
+### 🌐 **Key Distribution**
+- Encryption keys embedded in URL fragments (`#key=...`)
+- URL fragments are not sent to server (client-side only)
+- Keys are base64-encoded for URL safety
+- Each paste gets a unique encryption key
+
+## Implementation Details
+
+### Client-Side Encryption Flow
+1. User creates paste content
+2. Generate random AES-GCM 256-bit key
+3. Generate random 12-byte IV
+4. Encrypt content with key + IV
+5. Export key to base64 string
+6. Send encrypted content to server
+7. Return URL with key in fragment
+
+### Client-Side Decryption Flow
+1. Extract paste ID from URL path
+2. Extract encryption key from URL fragment
+3. Fetch encrypted data from server
+4. Import base64 key to CryptoKey
+5. Decrypt content using key + extracted IV
+6. Display decrypted content
+
+### Server-Side Changes
+- Added `encrypted` flag to paste metadata
+- Server serves different view templates for encrypted pastes
+- Encrypted pastes load content via API and decrypt client-side
+- No server-side decryption capabilities
+
+## File Changes
+
+### Frontend
+- **`frontend/script.js`**: Added encryption utilities and modified form submission
+- **`frontend/view.js`**: New file handling decryption for view pages
+- **`frontend/view.html`**: Updated to use view.js for encrypted content
+
+### Backend
+- **`worker/src/index.js`**: Updated to handle encrypted content and serve view.js
+
+## Security Benefits
+
+### 🔒 **Data Protection**
+- Paste content protected even if database is compromised
+- No plain text stored on server at any time
+- Memory-safe encryption using Web Crypto API
+
+### 🚫 **Attack Mitigation**
+- **Server Compromise**: Content remains encrypted
+- **Database Breach**: Only encrypted blobs exposed
+- **Man-in-the-Middle**: HTTPS protects key distribution
+- **Insider Threats**: Server admins cannot read content
+
+### 🔐 **Key Security**
+- Keys generated with cryptographically secure randomness
+- Each paste uses unique encryption key
+- Keys distributed via URL fragments (not logged by servers)
+- No key storage or caching on server
+
+## Usage
+
+### Creating Encrypted Pastes
+All new pastes are automatically encrypted. The process is transparent to users:
+1. Enter content normally
+2. Click "Create Paste"
+3. Receive URL with embedded encryption key
+4. Share the complete URL (including #key=... fragment)
+
+### Viewing Encrypted Pastes
+1. Click on shared URL with encryption key
+2. Content automatically decrypts in browser
+3. No additional steps required for valid keys
+4. Error shown if key is missing or invalid
+
+## Backward Compatibility
+- Existing unencrypted pastes continue to work
+- New pastes are encrypted by default
+- Mixed encrypted/unencrypted storage supported
+- Graceful handling of missing encryption keys
+
+## Performance Impact
+- Minimal encryption/decryption overhead
+- Native browser crypto APIs used
+- Client-side processing only
+- No server performance impact
+
+## Future Enhancements
+- Optional password-based key derivation
+- Key derivation from user passwords
+- Multiple encryption key support
+- Encrypted paste sharing controls
+
+---
+
+*This enhancement provides true end-to-end encryption while maintaining the simplicity and ease of use of the original Crypto Paste application.* 
