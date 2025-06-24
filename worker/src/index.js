@@ -125,9 +125,7 @@ const VIEW_HTML = `
                     <button id="themeToggle" class="icon-btn" title="Toggle theme">
                         <span class="theme-icon">🌙</span>
                     </button>
-                    <button id="fullscreenBtn" class="icon-btn" title="Toggle fullscreen">
-                        <span class="fullscreen-icon">⛶</span>
-                    </button>
+
                 </div>
             </div>
             
@@ -387,22 +385,7 @@ const VIEW_HTML = `
             window.print();
         });
         
-        // Fullscreen functionality
-        document.getElementById('fullscreenBtn').addEventListener('click', () => {
-            const pasteContent = document.getElementById('pasteContent');
-            
-            if (!document.fullscreenElement) {
-                pasteContent.requestFullscreen().then(() => {
-                    document.querySelector('.fullscreen-icon').textContent = '⛉';
-                    showToast('Entered fullscreen mode');
-                });
-            } else {
-                document.exitFullscreen().then(() => {
-                    document.querySelector('.fullscreen-icon').textContent = '⛶';
-                    showToast('Exited fullscreen mode');
-                });
-            }
-        });
+
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
@@ -429,14 +412,7 @@ const VIEW_HTML = `
                 }
             }
             
-            if (e.key === 'Escape' && document.fullscreenElement) {
-                document.exitFullscreen();
-            }
-            
-            if (e.key === 'F11') {
-                e.preventDefault();
-                document.getElementById('fullscreenBtn').click();
-            }
+
         });
         
         // Initialize theme

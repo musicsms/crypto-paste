@@ -22,7 +22,12 @@
                 
                 <div class="form-group">
                     <label for="content">Content</label>
-                    <textarea id="content" name="content" rows="20" placeholder="Paste your content here..." required></textarea>
+                    <div class="input-with-copy">
+                        <textarea id="content" name="content" rows="20" placeholder="Paste your content here..." required></textarea>
+                        <button type="button" class="copy-btn-inline" id="contentCopyBtn" title="Copy content">
+                            📋
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="form-row">
@@ -89,5 +94,72 @@
     </div>
     
     <script src="script.js"></script>
+    <script>
+        // Add copy functionality for the content textarea
+        document.addEventListener('DOMContentLoaded', function() {
+            const contentCopyBtn = document.getElementById('contentCopyBtn');
+            const contentTextarea = document.getElementById('content');
+            
+            if (contentCopyBtn && contentTextarea) {
+                contentCopyBtn.addEventListener('click', async function() {
+                    const content = contentTextarea.value;
+                    
+                    if (!content.trim()) {
+                        // Show a brief message if there's nothing to copy
+                        const originalContent = this.innerHTML;
+                        this.innerHTML = '⚠️';
+                        setTimeout(() => {
+                            this.innerHTML = originalContent;
+                        }, 1000);
+                        return;
+                    }
+                    
+                    try {
+                        await navigator.clipboard.writeText(content);
+                        
+                        // Visual feedback
+                        const originalContent = this.innerHTML;
+                        this.innerHTML = '✅';
+                        this.classList.add('success');
+                        
+                        // Show toast notification if available
+                        if (typeof showNotification === 'function') {
+                            showNotification('Content copied to clipboard!', 'success');
+                        }
+                        
+                        setTimeout(() => {
+                            this.innerHTML = originalContent;
+                            this.classList.remove('success');
+                        }, 2000);
+                    } catch (err) {
+                        console.error('Failed to copy:', err);
+                        
+                        // Visual feedback for error
+                        const originalContent = this.innerHTML;
+                        this.innerHTML = '❌';
+                        
+                        setTimeout(() => {
+                            this.innerHTML = originalContent;
+                        }, 2000);
+                    }
+                });
+                
+                // Hide copy button when textarea is empty
+                contentTextarea.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        contentCopyBtn.style.opacity = '1';
+                        contentCopyBtn.style.pointerEvents = 'auto';
+                    } else {
+                        contentCopyBtn.style.opacity = '0.5';
+                        contentCopyBtn.style.pointerEvents = 'none';
+                    }
+                });
+                
+                // Initialize button state
+                contentCopyBtn.style.opacity = contentTextarea.value.trim() ? '1' : '0.5';
+                contentCopyBtn.style.pointerEvents = contentTextarea.value.trim() ? 'auto' : 'none';
+            }
+        });
+    </script>
 </body>
 </html> 

@@ -49,11 +49,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function setTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
+        document.body.setAttribute('data-theme', theme);
         localStorage.setItem(STORAGE_KEYS.THEME, theme);
         
-        if (themeToggle) {
-            themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
-        }
+        // Update all theme toggle buttons consistently
+        const themeButtons = document.querySelectorAll('#themeToggle, #themeToggle2');
+        themeButtons.forEach(btn => {
+            if (btn) {
+                // Update text for text-based toggles
+                if (btn.textContent.includes('Mode')) {
+                    btn.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+                }
+                // Update icon for icon-based toggles
+                const themeIcon = btn.querySelector('.theme-icon');
+                if (themeIcon) {
+                    themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+                }
+            }
+        });
     }
     
     function toggleTheme() {

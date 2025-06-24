@@ -21,9 +21,6 @@
                     <button id="themeToggle" class="icon-btn" title="Toggle theme">
                         <span class="theme-icon">🌙</span>
                     </button>
-                    <button id="fullscreenBtn" class="icon-btn" title="Toggle fullscreen">
-                        <span class="fullscreen-icon">⛶</span>
-                    </button>
                 </div>
             </div>
             
@@ -48,6 +45,14 @@
         </header>
         
         <main class="view-main fade-in">
+            <!-- New Paste section - separate from other actions -->
+            <div class="new-paste-section">
+                <a href="index.html" class="action-btn primary">
+                    <span class="btn-icon">➕</span>
+                    <span class="btn-text">Create New Paste</span>
+                </a>
+            </div>
+            
             <div class="paste-toolbar">
                 <div class="toolbar-left">
                     <button id="copyBtn" class="action-btn primary">
@@ -67,16 +72,8 @@
                 <div class="toolbar-right">
                     <button id="rawBtn" class="action-btn">
                         <span class="btn-icon">📝</span>
-                        <span class="btn-text">Raw</span>
+                        <span class="btn-text">Raw View</span>
                     </button>
-                    <button id="printBtn" class="action-btn">
-                        <span class="btn-icon">🖨️</span>
-                        <span class="btn-text">Print</span>
-                    </button>
-                    <a href="index.html" class="action-btn new-paste">
-                        <span class="btn-icon">➕</span>
-                        <span class="btn-text">New Paste</span>
-                    </a>
                 </div>
             </div>
             
@@ -103,15 +100,15 @@
                 </div>
                 
                 <div class="paste-content" id="pasteContent">
-                    <pre class="line-numbers"><code class="language-javascript" id="codeBlock">// Welcome to Enhanced Crypto Paste! 🎉
+                    <div class="input-with-copy">
+                        <pre class="line-numbers"><code class="language-javascript" id="codeBlock">// Welcome to Enhanced Crypto Paste! 🎉
 function demonstrateFeatures() {
     // ✨ Modern glassmorphism design
     // 📋 Enhanced copy functionality
     // 🔗 URL copying
     // ⬇️ Smart downloads
-    // 🌙 Theme toggle
-    // ⛶ Fullscreen mode
-    // 📊 Live statistics
+                        // 🌙 Theme toggle
+                    // 📊 Live statistics
     // 🎯 Keyboard shortcuts
     
     console.log("Try the amazing new features!");
@@ -119,6 +116,10 @@ function demonstrateFeatures() {
 }
 
 demonstrateFeatures();</code></pre>
+                        <button class="copy-btn-inline" id="inlineCopyBtn" title="Copy code">
+                            📋
+                        </button>
+                    </div>
                 </div>
             </div>
             
@@ -130,6 +131,10 @@ demonstrateFeatures();</code></pre>
                 </div>
             </div>
         </main>
+        
+        <footer>
+            <p>Built with Cloudflare Workers | <button id="themeToggle2">🌙 Dark Mode</button></p>
+        </footer>
     </div>
     
     <!-- Notification Toast -->
@@ -189,171 +194,184 @@ demonstrateFeatures();</code></pre>
             }, 2000);
         }
         
-        // Theme toggle
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            const body = document.body;
-            const currentTheme = body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            body.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            
-            const icon = document.querySelector('.theme-icon');
-            icon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
-            
-            showToast('Theme changed to ' + newTheme + ' mode');
-        });
-        
-        // Copy code functionality
-        document.getElementById('copyBtn').addEventListener('click', async () => {
+        // Copy functionality for both buttons
+        async function copyCode() {
             const content = document.getElementById('codeBlock').textContent;
             
             try {
                 await navigator.clipboard.writeText(content);
-                const btn = document.getElementById('copyBtn');
-                const originalText = btn.innerHTML;
-                
-                btn.innerHTML = '<span class="btn-icon">✅</span><span class="btn-text">Copied!</span>';
-                btn.classList.add('success');
-                
                 showSuccessAnimation();
                 showToast('Code copied to clipboard!');
                 
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.classList.remove('success');
-                }, 2000);
+                // Visual feedback for both buttons
+                const buttons = [document.getElementById('copyBtn'), document.getElementById('inlineCopyBtn')];
+                buttons.forEach(btn => {
+                    if (btn) {
+                        const originalContent = btn.innerHTML;
+                        btn.innerHTML = btn.id === 'inlineCopyBtn' ? '✅' : '<span class="btn-icon">✅</span><span class="btn-text">Copied!</span>';
+                        btn.classList.add('success');
+                        
+                        setTimeout(() => {
+                            btn.innerHTML = originalContent;
+                            btn.classList.remove('success');
+                        }, 2000);
+                    }
+                });
             } catch (err) {
                 showToast('Failed to copy to clipboard', 'error');
             }
-        });
+        }
         
-        // Copy URL functionality
-        document.getElementById('copyUrlBtn').addEventListener('click', async () => {
-            try {
-                await navigator.clipboard.writeText(window.location.href);
-                const btn = document.getElementById('copyUrlBtn');
-                const originalText = btn.innerHTML;
+        // Theme toggle
+        function setupThemeToggle() {
+            const themeToggles = [document.getElementById('themeToggle'), document.getElementById('themeToggle2')];
+            
+            themeToggles.forEach(toggle => {
+                if (toggle) {
+                    toggle.addEventListener('click', () => {
+                        const body = document.body;
+                        const currentTheme = body.getAttribute('data-theme');
+                        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                        
+                        body.setAttribute('data-theme', newTheme);
+                        localStorage.setItem('theme', newTheme);
+                        
+                        // Update all theme toggle icons
+                        document.querySelectorAll('.theme-icon').forEach(icon => {
+                            icon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+                        });
+                        
+                        themeToggles.forEach(btn => {
+                            if (btn.id === 'themeToggle2') {
+                                btn.textContent = newTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+                            }
+                        });
+                        
+                        showToast('Theme changed to ' + newTheme + ' mode');
+                    });
+                }
+            });
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            setupThemeToggle();
+            
+            // Copy code functionality
+            document.getElementById('copyBtn').addEventListener('click', copyCode);
+            document.getElementById('inlineCopyBtn').addEventListener('click', copyCode);
+            
+            // Copy URL functionality
+            document.getElementById('copyUrlBtn').addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    const btn = document.getElementById('copyUrlBtn');
+                    const originalText = btn.innerHTML;
+                    
+                    btn.innerHTML = '<span class="btn-icon">✅</span><span class="btn-text">URL Copied!</span>';
+                    btn.classList.add('success');
+                    
+                    showToast('URL copied to clipboard!');
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.classList.remove('success');
+                    }, 2000);
+                } catch (err) {
+                    showToast('Failed to copy URL', 'error');
+                }
+            });
+            
+            // Download functionality
+            document.getElementById('downloadBtn').addEventListener('click', () => {
+                const content = document.getElementById('codeBlock').textContent;
+                const title = 'sample-code';
+                const extension = '.js';
                 
-                btn.innerHTML = '<span class="btn-icon">✅</span><span class="btn-text">URL Copied!</span>';
-                btn.classList.add('success');
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
                 
-                showToast('URL copied to clipboard!');
+                a.href = url;
+                a.download = title + extension;
+                a.click();
                 
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.classList.remove('success');
-                }, 2000);
-            } catch (err) {
-                showToast('Failed to copy URL', 'error');
-            }
-        });
-        
-        // Download functionality
-        document.getElementById('downloadBtn').addEventListener('click', () => {
-            const content = document.getElementById('codeBlock').textContent;
-            const title = 'sample-code';
-            const language = 'javascript';
-            const extension = '.js';
+                URL.revokeObjectURL(url);
+                showToast('File downloaded successfully!');
+            });
             
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
+            // Raw view functionality
+            document.getElementById('rawBtn').addEventListener('click', () => {
+                const content = document.getElementById('codeBlock').textContent;
+                const newWindow = window.open('', '_blank');
+                newWindow.document.write('<pre>' + content.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>');
+                newWindow.document.close();
+                showToast('Raw view opened in new tab');
+            });
             
-            a.href = url;
-            a.download = title + extension;
-            a.click();
+
             
-            URL.revokeObjectURL(url);
-            showToast('File downloaded successfully!');
-        });
-        
-        // Raw view functionality
-        document.getElementById('rawBtn').addEventListener('click', () => {
-            const content = document.getElementById('codeBlock').textContent;
-            const newWindow = window.open('', '_blank');
-            newWindow.document.write('<pre>' + content.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>');
-            newWindow.document.close();
-        });
-        
-        // Print functionality
-        document.getElementById('printBtn').addEventListener('click', () => {
-            window.print();
-        });
-        
-        // Fullscreen functionality
-        document.getElementById('fullscreenBtn').addEventListener('click', () => {
-            const pasteContent = document.getElementById('pasteContent');
-            
-            if (!document.fullscreenElement) {
-                pasteContent.requestFullscreen().then(() => {
-                    document.querySelector('.fullscreen-icon').textContent = '⛉';
-                    showToast('Entered fullscreen mode');
-                });
-            } else {
-                document.exitFullscreen().then(() => {
-                    document.querySelector('.fullscreen-icon').textContent = '⛶';
-                    showToast('Exited fullscreen mode');
-                });
-            }
-        });
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 'c':
-                        if (window.getSelection().toString() === '') {
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'c':
+                            if (window.getSelection().toString() === '') {
+                                e.preventDefault();
+                                copyCode();
+                            }
+                            break;
+                        case 's':
                             e.preventDefault();
-                            document.getElementById('copyBtn').click();
-                        }
-                        break;
-                    case 's':
-                        e.preventDefault();
-                        document.getElementById('downloadBtn').click();
-                        break;
-                    case 'p':
-                        e.preventDefault();
-                        document.getElementById('printBtn').click();
-                        break;
-                    case 'n':
-                        e.preventDefault();
-                        window.location.href = 'index.html';
-                        break;
+                            document.getElementById('downloadBtn').click();
+                            break;
+                        case 'n':
+                            e.preventDefault();
+                            window.location.href = 'index.html';
+                            break;
+                    }
+                }
+                
+
+            });
+            
+            // Initialize theme consistently
+            function initializeTheme() {
+                const savedTheme = localStorage.getItem('theme') || 'auto';
+                let actualTheme;
+                
+                if (savedTheme === 'auto') {
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    actualTheme = prefersDark ? 'dark' : 'light';
+                } else {
+                    actualTheme = savedTheme;
+                }
+                
+                // Apply theme to both documentElement and body
+                document.documentElement.setAttribute('data-theme', actualTheme);
+                document.body.setAttribute('data-theme', actualTheme);
+                
+                // Update all theme toggle elements
+                const themeIcon = document.querySelector('.theme-icon');
+                const themeToggle2 = document.getElementById('themeToggle2');
+                
+                if (themeIcon) {
+                    themeIcon.textContent = actualTheme === 'dark' ? '☀️' : '🌙';
+                }
+                if (themeToggle2) {
+                    themeToggle2.textContent = actualTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
                 }
             }
             
-            if (e.key === 'Escape' && document.fullscreenElement) {
-                document.exitFullscreen();
-            }
+            // Initialize theme and stats
+            initializeTheme();
+            updateStats();
             
-            if (e.key === 'F11') {
-                e.preventDefault();
-                document.getElementById('fullscreenBtn').click();
-            }
+            // Welcome message
+            setTimeout(() => {
+                showToast('Welcome! Use Ctrl+C to copy, Ctrl+S to download');
+            }, 1000);
         });
-        
-        // Initialize theme
-        const savedTheme = localStorage.getItem('theme') || 'auto';
-        if (savedTheme !== 'auto') {
-            document.body.setAttribute('data-theme', savedTheme);
-            document.querySelector('.theme-icon').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
-        }
-        
-        // Initialize stats
-        updateStats();
-        
-        // Auto-detect system theme if set to auto
-        if (savedTheme === 'auto') {
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-            document.querySelector('.theme-icon').textContent = prefersDark ? '☀️' : '🌙';
-        }
-        
-        // Welcome message
-        setTimeout(() => {
-            showToast('Welcome! Use Ctrl+C to copy, Ctrl+S to download');
-        }, 1000);
     </script>
 </body>
 </html> 
