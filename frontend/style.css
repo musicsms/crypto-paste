@@ -1,0 +1,469 @@
+/* CSS Variables for theming */
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --border-color: #e0e0e0;
+    --input-bg: #ffffff;
+    --card-bg: #ffffff;
+    --shadow: 0 10px 30px rgba(0,0,0,0.2);
+    --success-color: #28a745;
+    --error-color: #dc3545;
+    --secondary-bg: #f8f9fa;
+    --header-text: #ffffff;
+}
+
+[data-theme="dark"] {
+    --bg-color: #1a1a1a;
+    --text-color: #e0e0e0;
+    --border-color: #333333;
+    --input-bg: #2a2a2a;
+    --card-bg: #2a2a2a;
+    --shadow: 0 10px 30px rgba(0,0,0,0.5);
+    --secondary-bg: #1e1e1e;
+    --header-text: #ffffff;
+}
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background: var(--primary-gradient);
+    min-height: 100vh;
+    transition: all 0.3s ease;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header styles */
+header {
+    text-align: center;
+    margin-bottom: 40px;
+    color: var(--header-text);
+}
+
+header h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-weight: 700;
+}
+
+header h1 a {
+    color: var(--header-text);
+    text-decoration: none;
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+header h1 a:hover {
+    transform: scale(1.05);
+}
+
+header p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+.paste-meta {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.paste-meta span {
+    background: rgba(255,255,255,0.2);
+    padding: 5px 12px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+
+/* Main content */
+main {
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+    flex: 1;
+    transition: all 0.3s ease;
+}
+
+/* Form styles */
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.95rem;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--input-bg);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
+textarea {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+    resize: vertical;
+    min-height: 350px;
+    line-height: 1.5;
+}
+
+select {
+    cursor: pointer;
+}
+
+/* Button styles */
+button {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 18px 35px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.loading {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Result display */
+.result {
+    text-align: center;
+    padding: 30px;
+    background: var(--secondary-bg);
+    border-radius: 10px;
+    border: 3px solid var(--success-color);
+    margin-top: 20px;
+}
+
+.result h3 {
+    color: var(--success-color);
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.url-container {
+    display: flex;
+    gap: 12px;
+    margin: 20px 0;
+    align-items: stretch;
+}
+
+.url-container input {
+    flex: 1;
+    margin-bottom: 0;
+    font-family: monospace;
+    background: var(--input-bg);
+    border: 2px solid var(--border-color);
+}
+
+.url-container button {
+    width: auto;
+    padding: 15px 25px;
+    white-space: nowrap;
+}
+
+/* Paste actions */
+.paste-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.paste-actions button,
+.paste-actions a {
+    padding: 12px 20px;
+    background: #6c757d;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.paste-actions button:hover,
+.paste-actions a:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+}
+
+/* Paste content display */
+.paste-content {
+    background: var(--secondary-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.paste-content pre {
+    margin: 0;
+    padding: 25px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: auto;
+    background: transparent;
+}
+
+.paste-content code {
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-size: inherit;
+}
+
+/* Recent pastes */
+.recent-pastes {
+    margin-top: 30px;
+    padding: 25px;
+    background: var(--secondary-bg);
+    border-radius: 10px;
+    border: 2px solid var(--border-color);
+}
+
+.recent-pastes h3 {
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+.recent-pastes ul {
+    list-style: none;
+}
+
+.recent-pastes li {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.recent-pastes li:last-child {
+    border-bottom: none;
+}
+
+.recent-pastes a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.recent-pastes a:hover {
+    text-decoration: underline;
+}
+
+.recent-pastes .paste-info {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 30px;
+    color: rgba(255,255,255,0.8);
+    font-size: 0.9rem;
+}
+
+footer button {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    margin-left: 10px;
+    width: auto;
+    backdrop-filter: blur(10px);
+}
+
+footer button:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-1px);
+}
+
+/* Utility classes */
+.expired {
+    color: var(--error-color);
+    font-weight: bold;
+}
+
+.success {
+    color: var(--success-color);
+}
+
+.error {
+    color: var(--error-color);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    header h1 {
+        font-size: 2.5rem;
+    }
+    
+    main {
+        padding: 25px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .paste-actions {
+        flex-direction: column;
+    }
+    
+    .url-container {
+        flex-direction: column;
+    }
+    
+    .paste-meta {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    main {
+        padding: 20px;
+    }
+    
+    .paste-content pre {
+        padding: 15px;
+        font-size: 12px;
+    }
+}
+
+/* Print styles */
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+    
+    header, footer, .paste-actions {
+        display: none;
+    }
+    
+    main {
+        box-shadow: none;
+        padding: 0;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --border-color: #000000;
+        --text-color: #000000;
+    }
+    
+    [data-theme="dark"] {
+        --border-color: #ffffff;
+        --text-color: #ffffff;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+} 
