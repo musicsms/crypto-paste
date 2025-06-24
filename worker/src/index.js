@@ -10,17 +10,17 @@ const MAIN_HTML = `
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Paste</title>
+    <title>Crypto Paste - Secure Text Sharing</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🔐 Crypto Paste</h1>
-            <p>Secure, temporary text sharing</p>
+            <h1 class="slide-in-left">🔐 Crypto Paste</h1>
+            <p class="slide-in-right">Secure, temporary text sharing</p>
         </header>
         
-        <main>
+        <main class="fade-in">
             <form id="pasteForm">
                 <div class="form-group">
                     <label for="title">Title (optional)</label>
@@ -45,6 +45,9 @@ const MAIN_HTML = `
                             <option value="markdown">Markdown</option>
                             <option value="bash">Bash</option>
                             <option value="sql">SQL</option>
+                            <option value="java">Java</option>
+                            <option value="cpp">C++</option>
+                            <option value="typescript">TypeScript</option>
                         </select>
                     </div>
                     
@@ -80,7 +83,17 @@ const MAIN_HTML = `
                 </div>
                 <p><a href="#" id="viewLink">View Paste</a> | <a href="/">Create Another</a></p>
             </div>
+            
+            <div id="recentPastes" class="recent-pastes" style="display: none;">
+                <h3>Recent Pastes</h3>
+                <ul id="recentList"></ul>
+            </div>
         </main>
+        
+        <footer>
+            <p>Built with Cloudflare Workers</p>
+            <button id="themeToggle">🌙 Dark Mode</button>
+        </footer>
     </div>
     
     <script src="/script.js"></script>
@@ -439,46 +452,122 @@ async function handleViewPaste(request, env, pasteId) {
 
 // CSS Styles
 const CSS = `
+/* CSS Variables for theming */
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    --glass-bg: rgba(255, 255, 255, 0.25);
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --bg-color: #ffffff;
+    --text-color: #2d3748;
+    --text-light: #718096;
+    --border-color: rgba(226, 232, 240, 0.8);
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --success-color: #48bb78;
+    --error-color: #f56565;
+    --warning-color: #ed8936;
+    --info-color: #4299e1;
+    --secondary-bg: rgba(247, 250, 252, 0.8);
+    --header-text: #ffffff;
+    --accent-color: #805ad5;
+    --hover-transform: translateY(-2px);
+}
+
+[data-theme="dark"] {
+    --glass-bg: rgba(45, 55, 72, 0.25);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --bg-color: #1a202c;
+    --text-color: #e2e8f0;
+    --text-light: #a0aec0;
+    --border-color: rgba(74, 85, 104, 0.6);
+    --input-bg: rgba(45, 55, 72, 0.8);
+    --card-bg: rgba(45, 55, 72, 0.95);
+    --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    --secondary-bg: rgba(26, 32, 44, 0.8);
+    --header-text: #ffffff;
+    --success-color: #68d391;
+    --error-color: #fc8181;
+    --warning-color: #f6ad55;
+    --info-color: #63b3ed;
+}
+
+/* Reset and base styles */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
     line-height: 1.6;
-    color: #333;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: var(--text-color);
+    background: var(--primary-gradient);
+    background-attachment: fixed;
     min-height: 100vh;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 400;
+    letter-spacing: -0.025em;
+    overflow-x: hidden;
 }
 
 .container {
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
     padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 header {
     text-align: center;
     margin-bottom: 40px;
-    color: white;
+    color: var(--header-text);
 }
 
 header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-size: 3.5rem;
+    margin-bottom: 16px;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.8) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 header h1 a {
-    color: white;
+    color: var(--header-text);
     text-decoration: none;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-block;
+    background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.8) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+header h1 a:hover {
+    transform: scale(1.05) rotate(1deg);
+    filter: drop-shadow(0 0 20px rgba(255,255,255,0.5));
 }
 
 header p {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     opacity: 0.9;
+    font-weight: 400;
+    letter-spacing: 0.025em;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 
 .paste-meta {
@@ -486,46 +575,132 @@ header p {
     gap: 20px;
     justify-content: center;
     flex-wrap: wrap;
-    margin-top: 10px;
+    margin-top: 15px;
     font-size: 0.9rem;
 }
 
+.paste-meta span {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 8px 16px;
+    border-radius: 25px;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    font-weight: 500;
+    letter-spacing: 0.025em;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.paste-meta span:hover {
+    transform: translateY(-2px);
+    background: rgba(255,255,255,0.35);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
 main {
-    background: white;
-    border-radius: 10px;
-    padding: 30px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 48px;
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    flex: 1;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+main::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    pointer-events: none;
+}
+
+main:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg), 0 0 40px rgba(102, 126, 234, 0.15);
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 32px;
+    position: relative;
 }
 
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 32px;
 }
 
 label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 12px;
     font-weight: 600;
-    color: #555;
+    color: var(--text-color);
+    font-size: 0.95rem;
+    letter-spacing: 0.025em;
+    position: relative;
+    padding-left: 8px;
+}
+
+label::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 16px;
+    background: var(--primary-gradient);
+    border-radius: 2px;
+    opacity: 0.7;
+}
+
+.form-group:focus-within label {
+    color: #667eea;
+    transform: translateY(-2px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-group:focus-within label::before {
+    opacity: 1;
+    transform: translateY(-50%) scaleY(1.2);
 }
 
 input, textarea, select {
     width: 100%;
-    padding: 12px;
-    border: 2px solid #e0e0e0;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: border-color 0.3s;
+    padding: 16px 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    font-size: 15px;
+    background: var(--input-bg);
+    color: var(--text-color);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
+    font-weight: 400;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 input:focus, textarea:focus, select:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: transparent;
+    background: var(--card-bg);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), 0 8px 25px rgba(102, 126, 234, 0.15);
+    transform: var(--hover-transform);
+}
+
+input:hover, textarea:hover, select:hover {
+    border-color: rgba(102, 126, 234, 0.4);
+    transform: translateY(-1px);
 }
 
 textarea {
@@ -534,24 +709,65 @@ textarea {
     min-height: 300px;
 }
 
+select {
+    cursor: pointer;
+}
+
 button {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-gradient);
     color: white;
     border: none;
-    padding: 15px 30px;
-    border-radius: 6px;
+    padding: 20px 40px;
+    border-radius: 16px;
     font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     width: 100%;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    letter-spacing: 0.025em;
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+button:hover::before {
+    left: 100%;
 }
 
 button:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
 }
 
 button:active {
-    transform: translateY(0);
+    transform: translateY(-1px);
+    transition: transform 0.1s;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
+}
+
+button:disabled:hover {
+    transform: none;
+    background: var(--primary-gradient);
 }
 
 .loading {
@@ -564,12 +780,134 @@ button:active {
     100% { transform: rotate(360deg); }
 }
 
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(30px) scale(0.95); 
+        filter: blur(10px);
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+        filter: blur(0);
+    }
+}
+
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.fade-in {
+    animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.slide-in-left {
+    animation: slideInFromLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.slide-in-right {
+    animation: slideInFromRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.float {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Floating background elements */
+body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1.5" fill="rgba(255,255,255,0.1)"/></svg>');
+    animation: float 20s linear infinite;
+    pointer-events: none;
+    z-index: -1;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
 .result {
     text-align: center;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 6px;
-    border: 2px solid #28a745;
+    padding: 40px;
+    background: var(--glass-bg);
+    border: 1px solid rgba(72, 187, 120, 0.3);
+    border-radius: 20px;
+    margin-top: 30px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(72, 187, 120, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.result::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--success-gradient);
+}
+
+.result h3 {
+    color: var(--success-color);
+    margin-bottom: 24px;
+    font-size: 1.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.result h3::before {
+    content: '🎉';
+    font-size: 1.5rem;
+    animation: float 2s ease-in-out infinite;
 }
 
 .url-container {
