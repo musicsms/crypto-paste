@@ -109,54 +109,357 @@ const VIEW_HTML = `
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{TITLE}} - Crypto Paste</title>
     <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
 </head>
-<body>
+<body data-theme="auto">
     <div class="container">
-        <header>
-            <h1><a href="/">🔐 Crypto Paste</a></h1>
-            <div class="paste-meta">
-                <span>{{TITLE}}</span>
-                <span>Language: {{LANGUAGE}}</span>
-                <span>Views: {{VIEWS}}</span>
-                {{EXPIRES_INFO}}
+        <header class="view-header">
+            <div class="header-top">
+                <h1 class="slide-in-left"><a href="/">🔐 Crypto Paste</a></h1>
+                <div class="header-actions">
+                    <button id="themeToggle" class="icon-btn" title="Toggle theme">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                    <button id="fullscreenBtn" class="icon-btn" title="Toggle fullscreen">
+                        <span class="fullscreen-icon">⛶</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="paste-meta slide-in-right">
+                <div class="meta-item">
+                    <span class="meta-icon">📄</span>
+                    <span class="meta-text">{{TITLE}}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-icon">💻</span>
+                    <span class="meta-text">{{LANGUAGE}}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-icon">👁️</span>
+                    <span class="meta-text">{{VIEWS}} views</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-icon">⏰</span>
+                    {{EXPIRES_INFO}}
+                </div>
             </div>
         </header>
         
-        <main>
-            <div class="paste-actions">
-                <button id="copyBtn">Copy to Clipboard</button>
-                <button id="downloadBtn">Download</button>
-                <a href="/">Create New Paste</a>
+        <main class="view-main fade-in">
+            <div class="paste-toolbar">
+                <div class="toolbar-left">
+                    <button id="copyBtn" class="action-btn primary">
+                        <span class="btn-icon">📋</span>
+                        <span class="btn-text">Copy Code</span>
+                    </button>
+                    <button id="copyUrlBtn" class="action-btn">
+                        <span class="btn-icon">🔗</span>
+                        <span class="btn-text">Copy URL</span>
+                    </button>
+                    <button id="downloadBtn" class="action-btn">
+                        <span class="btn-icon">⬇️</span>
+                        <span class="btn-text">Download</span>
+                    </button>
+                </div>
+                
+                <div class="toolbar-right">
+                    <button id="rawBtn" class="action-btn">
+                        <span class="btn-icon">📝</span>
+                        <span class="btn-text">Raw</span>
+                    </button>
+                    <button id="printBtn" class="action-btn">
+                        <span class="btn-icon">🖨️</span>
+                        <span class="btn-text">Print</span>
+                    </button>
+                    <a href="/" class="action-btn new-paste">
+                        <span class="btn-icon">➕</span>
+                        <span class="btn-text">New Paste</span>
+                    </a>
+                </div>
             </div>
             
-            <div class="paste-content">
-                <pre><code class="language-{{LANGUAGE}}">{{CONTENT}}</code></pre>
+            <div class="paste-wrapper">
+                <div class="paste-header">
+                    <div class="paste-title">
+                        <h2>{{TITLE}}</h2>
+                        <span class="language-badge">{{LANGUAGE}}</span>
+                    </div>
+                    <div class="paste-stats">
+                        <span class="stat-item">
+                            <span class="stat-icon">📊</span>
+                            <span id="lineCount">0 lines</span>
+                        </span>
+                        <span class="stat-item">
+                            <span class="stat-icon">📏</span>
+                            <span id="charCount">0 chars</span>
+                        </span>
+                        <span class="stat-item">
+                            <span class="stat-icon">📦</span>
+                            <span id="sizeCount">0 B</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="paste-content" id="pasteContent">
+                    <pre class="line-numbers"><code class="language-{{LANGUAGE}}" id="codeBlock">{{CONTENT}}</code></pre>
+                </div>
+            </div>
+            
+            <div class="paste-footer">
+                <div class="footer-info">
+                    <span>Created with ❤️ using Crypto Paste</span>
+                    <span>•</span>
+                    <span>Secure • Fast • Simple</span>
+                </div>
             </div>
         </main>
     </div>
     
+    <!-- Notification Toast -->
+    <div id="toast" class="toast">
+        <span id="toastMessage"></span>
+    </div>
+    
+    <!-- Success Animation -->
+    <div id="successAnimation" class="success-animation">
+        <div class="checkmark">
+            <svg viewBox="0 0 52 52">
+                <circle cx="26" cy="26" r="25" fill="none"/>
+                <path fill="none" d="m14,26 l8,8 l16,-16"/>
+            </svg>
+        </div>
+    </div>
+    
     <script>
-        document.getElementById('copyBtn').addEventListener('click', () => {
-            navigator.clipboard.writeText(document.querySelector('code').textContent);
-            document.getElementById('copyBtn').textContent = 'Copied!';
+        // Initialize stats
+        function updateStats() {
+            const content = document.getElementById('codeBlock').textContent;
+            const lines = content.split('\\n').length;
+            const chars = content.length;
+            const bytes = new Blob([content]).size;
+            
+            document.getElementById('lineCount').textContent = lines + ' lines';
+            document.getElementById('charCount').textContent = chars + ' chars';
+            document.getElementById('sizeCount').textContent = formatBytes(bytes);
+        }
+        
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+            
             setTimeout(() => {
-                document.getElementById('copyBtn').textContent = 'Copy to Clipboard';
+                toast.className = 'toast ' + type;
+            }, 3000);
+        }
+        
+        function showSuccessAnimation() {
+            const animation = document.getElementById('successAnimation');
+            animation.classList.add('show');
+            setTimeout(() => {
+                animation.classList.remove('show');
             }, 2000);
+        }
+        
+        // Theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            const icon = document.querySelector('.theme-icon');
+            icon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            
+            showToast('Theme changed to ' + newTheme + ' mode');
         });
         
+        // Copy code functionality
+        document.getElementById('copyBtn').addEventListener('click', async () => {
+            const content = document.getElementById('codeBlock').textContent;
+            
+            try {
+                await navigator.clipboard.writeText(content);
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.innerHTML;
+                
+                btn.innerHTML = '<span class="btn-icon">✅</span><span class="btn-text">Copied!</span>';
+                btn.classList.add('success');
+                
+                showSuccessAnimation();
+                showToast('Code copied to clipboard!');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('success');
+                }, 2000);
+            } catch (err) {
+                showToast('Failed to copy to clipboard', 'error');
+            }
+        });
+        
+        // Copy URL functionality
+        document.getElementById('copyUrlBtn').addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                const btn = document.getElementById('copyUrlBtn');
+                const originalText = btn.innerHTML;
+                
+                btn.innerHTML = '<span class="btn-icon">✅</span><span class="btn-text">URL Copied!</span>';
+                btn.classList.add('success');
+                
+                showToast('URL copied to clipboard!');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('success');
+                }, 2000);
+            } catch (err) {
+                showToast('Failed to copy URL', 'error');
+            }
+        });
+        
+        // Download functionality
         document.getElementById('downloadBtn').addEventListener('click', () => {
-            const content = document.querySelector('code').textContent;
+            const content = document.getElementById('codeBlock').textContent;
+            const title = '{{TITLE}}' || 'paste';
+            const language = '{{LANGUAGE}}';
+            const extension = getFileExtension(language);
+            
             const blob = new Blob([content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
+            
             a.href = url;
-            a.download = '{{TITLE}}.txt';
+            a.download = title + extension;
             a.click();
+            
             URL.revokeObjectURL(url);
+            showToast('File downloaded successfully!');
         });
+        
+        function getFileExtension(language) {
+            const extensions = {
+                'javascript': '.js',
+                'typescript': '.ts',
+                'python': '.py',
+                'html': '.html',
+                'css': '.css',
+                'json': '.json',
+                'markdown': '.md',
+                'bash': '.sh',
+                'sql': '.sql',
+                'java': '.java',
+                'cpp': '.cpp',
+                'c': '.c'
+            };
+            return extensions[language] || '.txt';
+        }
+        
+        // Raw view functionality
+        document.getElementById('rawBtn').addEventListener('click', () => {
+            const content = document.getElementById('codeBlock').textContent;
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write('<pre>' + content.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>');
+            newWindow.document.close();
+        });
+        
+        // Print functionality
+        document.getElementById('printBtn').addEventListener('click', () => {
+            window.print();
+        });
+        
+        // Fullscreen functionality
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            const pasteContent = document.getElementById('pasteContent');
+            
+            if (!document.fullscreenElement) {
+                pasteContent.requestFullscreen().then(() => {
+                    document.querySelector('.fullscreen-icon').textContent = '⛉';
+                    showToast('Entered fullscreen mode');
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    document.querySelector('.fullscreen-icon').textContent = '⛶';
+                    showToast('Exited fullscreen mode');
+                });
+            }
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'c':
+                        if (window.getSelection().toString() === '') {
+                            e.preventDefault();
+                            document.getElementById('copyBtn').click();
+                        }
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        document.getElementById('downloadBtn').click();
+                        break;
+                    case 'p':
+                        e.preventDefault();
+                        document.getElementById('printBtn').click();
+                        break;
+                    case 'n':
+                        e.preventDefault();
+                        window.location.href = '/';
+                        break;
+                }
+            }
+            
+            if (e.key === 'Escape' && document.fullscreenElement) {
+                document.exitFullscreen();
+            }
+            
+            if (e.key === 'F11') {
+                e.preventDefault();
+                document.getElementById('fullscreenBtn').click();
+            }
+        });
+        
+        // Initialize theme
+        const savedTheme = localStorage.getItem('theme') || 'auto';
+        if (savedTheme !== 'auto') {
+            document.body.setAttribute('data-theme', savedTheme);
+            document.querySelector('.theme-icon').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        }
+        
+        // Initialize stats
+        updateStats();
+        
+        // Auto-detect system theme if set to auto
+        if (savedTheme === 'auto') {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            document.querySelector('.theme-icon').textContent = prefersDark ? '☀️' : '🌙';
+        }
+        
+        // Welcome message
+        setTimeout(() => {
+            showToast('Welcome! Use Ctrl+C to copy, Ctrl+S to download');
+        }, 1000);
     </script>
 </body>
 </html>
@@ -965,7 +1268,315 @@ body::after {
     font-weight: bold;
 }
 
-@media (max-width: 600px) {
+/* Enhanced View Page Styles */
+.view-header {
+    margin-bottom: 30px;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.icon-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.icon-btn:hover {
+    transform: translateY(-2px);
+    background: var(--card-bg);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.meta-icon {
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+.meta-text {
+    font-weight: 500;
+}
+
+.view-main {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 0;
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    overflow: hidden;
+}
+
+.paste-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background: rgba(255,255,255,0.1);
+    border-bottom: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.toolbar-left, .toolbar-right {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--input-bg);
+    color: var(--text-color);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.9rem;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    background: var(--card-bg);
+    border-color: rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.action-btn.primary {
+    background: var(--primary-gradient);
+    color: white;
+    border-color: transparent;
+}
+
+.action-btn.primary:hover {
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.action-btn.success {
+    background: var(--success-gradient) !important;
+    color: white !important;
+    border-color: transparent !important;
+}
+
+.btn-icon {
+    font-size: 1rem;
+}
+
+.btn-text {
+    font-weight: 500;
+    letter-spacing: 0.025em;
+}
+
+.paste-wrapper {
+    padding: 24px;
+}
+
+.paste-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.paste-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.paste-title h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.language-badge {
+    background: var(--accent-gradient);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.paste-stats {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    background: var(--secondary-bg);
+    padding: 6px 12px;
+    border-radius: 16px;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.stat-icon {
+    font-size: 0.9rem;
+}
+
+/* Toast Notification */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-color);
+    padding: 16px 20px;
+    border-radius: 12px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: var(--shadow);
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    font-weight: 500;
+    max-width: 300px;
+}
+
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast.success {
+    border-color: rgba(72, 187, 120, 0.3);
+    background: rgba(72, 187, 120, 0.1);
+}
+
+.toast.error {
+    border-color: rgba(245, 101, 101, 0.3);
+    background: rgba(245, 101, 101, 0.1);
+}
+
+/* Success Animation */
+.success-animation {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1001;
+    pointer-events: none;
+}
+
+.success-animation.show {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.checkmark {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--success-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 32px rgba(72, 187, 120, 0.3);
+}
+
+.checkmark svg {
+    width: 40px;
+    height: 40px;
+}
+
+.checkmark circle {
+    stroke: white;
+    stroke-width: 2;
+    stroke-miterlimit: 10;
+    fill: none;
+    animation: checkmark-circle 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark path {
+    stroke: white;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-miterlimit: 10;
+    fill: none;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: checkmark-check 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.3s forwards;
+}
+
+@keyframes checkmark-circle {
+    0% {
+        stroke-dasharray: 0 157;
+        stroke-dashoffset: 0;
+    }
+    100% {
+        stroke-dasharray: 157 157;
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes checkmark-check {
+    0% {
+        stroke-dashoffset: 48;
+    }
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+@media (max-width: 768px) {
     .container {
         padding: 10px;
     }
@@ -980,6 +1591,56 @@ body::after {
     
     .url-container {
         flex-direction: column;
+    }
+    
+    .paste-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .toolbar-left, .toolbar-right {
+        justify-content: center;
+    }
+    
+    .paste-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .paste-stats {
+        justify-content: center;
+    }
+    
+    .header-top {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+    
+    .meta-item {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .action-btn .btn-text {
+        display: none;
+    }
+    
+    .action-btn {
+        padding: 10px;
+        justify-content: center;
+    }
+    
+    .paste-title h2 {
+        font-size: 1.2rem;
+    }
+    
+    .toast {
+        right: 10px;
+        left: 10px;
+        max-width: none;
     }
 }
 `;
