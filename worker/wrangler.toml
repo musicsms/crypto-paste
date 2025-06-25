@@ -1,8 +1,0 @@
-name = "crypto-paste-worker"
-main = "src/index.js"
-compatibility_date = "2024-01-15"
-
-[[kv_namespaces]]
-binding = "PASTEBIN_KV"
-preview_id = "44cede8dae7f40bbbfd41e41ffe4af8e"
-id = "08c8fc654472484fb87168c4414e3afd" 
