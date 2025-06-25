@@ -1,0 +1,11 @@
+name = "crypto-paste-api"
+main = "src/worker.ts"
+compatibility_date = "2024-06-25"
+
+[[kv_namespaces]]
+binding = "PASTES_KV"
+id = "your-production-kv-namespace-id"
+preview_id = "your-preview-kv-namespace-id"
+
+[vars]
+ENVIRONMENT = "production" 
