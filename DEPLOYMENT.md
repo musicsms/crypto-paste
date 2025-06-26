@@ -7,7 +7,15 @@
 - [ ] Wrangler CLI installed: `npm install -g wrangler`
 - [ ] Logged in: `wrangler login`
 
-### 2. KV Namespace Setup
+### 2. Configuration Setup
+**Important**: This repository contains a `wrangler.toml.example` file. You need to create your own `wrangler.toml` file with your actual configuration.
+
+```bash
+# Copy the example configuration
+cp wrangler.toml.example wrangler.toml
+```
+
+### 3. KV Namespace Setup
 ```bash
 # Create production KV namespace
 wrangler kv namespace create "PASTES_KV"
@@ -16,20 +24,21 @@ wrangler kv namespace create "PASTES_KV"
 wrangler kv namespace create "PASTES_KV" --preview
 ```
 
-Update `wrangler.toml` with the generated namespace IDs:
+**Update your `wrangler.toml`** with the generated namespace IDs:
 ```toml
 [[kv_namespaces]]
 binding = "PASTES_KV"
-id = "your-production-namespace-id"
-preview_id = "your-preview-namespace-id"
+id = "your-actual-production-namespace-id"  # Replace with real ID from command output
+preview_id = "your-actual-preview-namespace-id"  # Replace with real ID from command output
 ```
 
-### 3. Configuration Updates
-- [ ] Update `wrangler.toml` with correct KV namespace IDs
+### 4. Configuration Updates
+- [ ] ✅ Created `wrangler.toml` from `wrangler.toml.example`
+- [ ] Updated `wrangler.toml` with correct KV namespace IDs
 - [ ] Update worker name in `wrangler.toml` if needed
 - [ ] Verify CORS origins in `src/worker.ts` for your domain
 
-### 4. Build and Test
+### 5. Build and Test
 ```bash
 # Install dependencies
 npm install
@@ -105,7 +114,8 @@ curl -X POST https://your-worker-domain.workers.dev/api/pastes \
 
 ## Security Considerations
 
-- [ ] KV namespace IDs are not sensitive but keep them private
+- [ ] ✅ `wrangler.toml` is in `.gitignore` to prevent committing real IDs
+- [ ] ✅ Use `wrangler.toml.example` as a template for setup
 - [ ] Never log or store encryption keys server-side
 - [ ] Review CORS origins for production
 - [ ] Ensure HTTPS only (Cloudflare handles this)
@@ -126,10 +136,11 @@ curl -X POST https://your-worker-domain.workers.dev/api/pastes \
 ## Troubleshooting
 
 ### Common Issues:
-1. **CORS errors**: Check worker CORS configuration
-2. **KV errors**: Verify namespace IDs in wrangler.toml
-3. **Build errors**: Check Node.js version (18+ required)
-4. **Routing issues**: Verify `_routes.json` configuration
+1. **Missing wrangler.toml**: Copy `wrangler.toml.example` to `wrangler.toml` first
+2. **CORS errors**: Check worker CORS configuration
+3. **KV errors**: Verify namespace IDs in your `wrangler.toml`
+4. **Build errors**: Check Node.js version (18+ required)
+5. **Routing issues**: Verify `_routes.json` configuration
 
 ### Debug Mode:
 ```bash

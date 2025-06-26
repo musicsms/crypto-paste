@@ -18,6 +18,7 @@ yarn.lock
 .wrangler/
 wrangler.toml.backup
 .dev.vars
+wrangler.toml
 
 # API keys and tokens
 *.key
